@@ -32,10 +32,10 @@ namespace Engine {
     };
 
     struct RenderPayload {
-        std::vector<glm::mat4> spatialMats; // complete spatial scaling, rotating, and translating mat
-        std::vector<glm::vec3> colors;      // color of the instance
+        const std::vector<glm::mat4>* spatialMats = nullptr; // complete spatial scaling, rotating, and translating mat
+        const std::vector<glm::vec3>* colors = nullptr;      // color of the instance
 
-        std::vector<LineData> lines;        // any lines desired to be drawn that frame     
+        const std::vector<LineData>* lines = nullptr;        // any lines desired to be drawn that frame     
     };
 
     class Camera {
@@ -64,7 +64,7 @@ namespace Engine {
                         int maxInstanceCapacity=10, 
                         std::array<int,2> windowSize={800,800}, 
                         bool usingLineFlag=false,
-                        int maxLinePoints = 1000 );
+                        int maxLinePoints=1000 );
         // --- Destructor ---
         ~GraphicsEngine();
 

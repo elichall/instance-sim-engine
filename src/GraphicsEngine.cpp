@@ -109,7 +109,7 @@ namespace Engine {
         // calculate aspect ratio dynamically
         glm::mat4 projMat = glm::perspective(glm::radians(45.0f), (float)winSize[0] / (float)winSize[1], 0.1f, 100.0f);
 
-        int instObjectNum = payload.spatialMats.size();
+        int instObjectNum = payload.spatialMats->size();
         
         // Check if payload is larger than set capacity
         if (instObjectNum > maxCapacity) {
@@ -154,13 +154,13 @@ namespace Engine {
         glBufferSubData( GL_ARRAY_BUFFER,                   // Target
                          0,                                 // Byte Offset
                          instObjectNum * sizeof(glm::mat4), // Total Byte Size
-                         payload.spatialMats.data() );   // Pointer to start of data in memory block
+                         payload.spatialMats->data() );   // Pointer to start of data in memory block
         
         glBindBuffer(GL_ARRAY_BUFFER, colorVBO);
         glBufferSubData( GL_ARRAY_BUFFER, 
                          0, 
                          instObjectNum * sizeof(glm::vec3), 
-                         payload.colors.data() );
+                         payload.colors->data() );
 
         glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind to protect state
 
@@ -194,7 +194,7 @@ namespace Engine {
         glDisable(GL_POLYGON_OFFSET_LINE);
         
         // Draw any lines the user specifies
-        if (isLine && !payload.lines.empty()) {
+        if (isLine && payload.lines != nullptr && !payload.lines->empty()) { // double protection
             glUseProgram(lineShaderProgram);
 
             // pass camera matrices to the instance shader program
@@ -210,7 +210,7 @@ namespace Engine {
             glBindVertexArray(lineVAO);
             glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
 
-            for (const auto& line : payload.lines) {
+            for (const auto& line : *payload.lines) {
                 int numPoints = line.points.size();
                 
                 // catch too many points
@@ -471,7 +471,8 @@ namespace Engine {
         // delete shader program
         glDeleteProgram(shaderProgram);
 
-        // close window and terminate GLFW
+        // close window and terminate GLFW and 
+        glfwDestroyWindow(window);
         glfwTerminate();
     }
 
