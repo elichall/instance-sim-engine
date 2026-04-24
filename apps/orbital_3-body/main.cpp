@@ -25,7 +25,7 @@ int main() {
     float accumulator = 0.0f;
 
     // --- Performance Tracking ---
-    std::ofstream logFile("sim_performance.csv");
+    std::ofstream logFile("orbital_performance.csv");
     logFile << "ParticleCount,PhysicsTimeMS,RenderTimeMS,TotalFPS,EnergyDrift\n";
 
     // compute time and frame rates for the graphics and physics engines

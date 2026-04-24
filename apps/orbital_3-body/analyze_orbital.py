@@ -2,8 +2,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+repo_root = os.path.abspath(os.path.join(script_dir, "..", ".."))
+csv_path = os.path.join(repo_root, "build", "orbital_performance.csv")
+output_img = os.path.join(repo_root, "build", "orbital_report.png")
+
 # Define the path to the CSV (assuming we run this script from the project root)
-csv_path = os.path.join("build", "sim_performance.csv")
 
 def main():
     if not os.path.exists(csv_path):
