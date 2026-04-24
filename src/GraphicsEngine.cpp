@@ -62,6 +62,8 @@ namespace Engine {
         // tells glfw we want to use the window in our current context (OpenGL object)
         glfwMakeContextCurrent(window);
 
+        glfwSwapInterval(0); // turns off v-sync (very important for good sims)
+
         glfwSetWindowUserPointer(window, this);
 
         glfwSetMouseButtonCallback(window, mouseButtonCallback);
