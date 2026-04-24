@@ -26,7 +26,7 @@ include_directories(src)
 add_executable(TestGL apps/test_gl/main.cpp)
 target_link_libraries(TestGL glad glm glfw OpenGL::GL)
 
-add_executable(OrbitalSim apps/orbital_3body/main.cpp src/GraphicsEngine.cpp)
+add_executable(OrbitalSim apps/orbital_3-body/main.cpp src/GraphicsEngine.cpp)
 target_link_libraries(OrbitalSim glad glm glfw OpenGL::GL)
 
 add_executable(RoboticSim apps/robotic_manipulator/main.cpp src/GraphicsEngine.cpp)

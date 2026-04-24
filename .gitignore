@@ -1,21 +1,35 @@
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Executables
-*.exe
-*.out
-*.app
-
-# Build directories
+# =========================
+# C++ & CMake Build Files
+# =========================
+# Ignore the entire build directory (contains your executables, Makefiles, and object files)
 build/
-bin/
-obj/
+.cache/
+compile_commands.json
 
-# IDE specifics (VSCode)
+# =========================
+# Python Environment
+# =========================
+# Ignore the virtual environment folder (this contains thousands of Python system files)
+venv/
+env/
+
+# Ignore Python cache files (generated automatically when Python runs)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# =========================
+# Simulation Output Data
+# =========================
+# Ignore generated CSVs so you don't accidentally push 2GB of physics data to GitHub
+*.csv
+
+# (Optional) If you want to keep ONE small sample CSV to prove the script works, 
+# you can force Git to track it by adding an exclamation point:
+# !sample_performance.csv
+
+# =========================
+# OS & Editor Files
+# =========================
 .vscode/
+.DS_Store
