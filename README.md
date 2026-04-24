@@ -39,3 +39,16 @@ source venv/bin/activate
 pip install -r requirements.txt
 python apps/orbital_3-body/analyze_orbital.py
 ```
+
+## AI Usage Acknowledgment
+
+This project utilized a Large Language Model (Gemini) as an interactive technical partner to assist in the architectural unification and validation of the simulation engine. The collaboration focused on translating high-level engineering goals into performant C++ and Python implementations.
+
+Key areas of AI assistance included:
+
+* **Architectural Sounding Board:** Providing feedback on Data-Oriented Design (SoA) patterns and monorepo structure to ensure long-term project scalability.
+* **Computational Physics Tutoring:** Advising on the selection and implementation of symplectic integration methods to maintain numerical stability in chaotic systems.
+* **Technical Troubleshooting:** Assisting with the configuration of modern C++ build systems (CMake), graphics pipeline debugging, and environment management.
+* **Documentation & Reporting:** Collaborative drafting of technical documentation and automated analysis scripts to visualize engine performance.
+
+**Human-Driven Logic:** While AI served as a valuable tool for accelerating development and enforcing industry best practices, the core structural decisions, logic synthesis, and final implementation remain entirely human-driven. Critical optimizations and the strategic isolation of profiling metrics to preserve real-time performance are the direct result of human architectural intuition and project vision.
