@@ -102,12 +102,20 @@ namespace Engine {
 
     // call every loop to update instance objects with payload
     void GraphicsEngine::renderFrame(const RenderPayload& payload) {
+        // Prepare to draw in back buffer
+        int width, height;
+        glfwGetFramebufferSize(window, &width, &height);
+
+        glViewport(0, 0, width, height);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // create your camera matrices
+        // 
+        // create camera matrices
         glm::mat4 viewMat = camera.viewMat();
         // calculate aspect ratio dynamically
-        glm::mat4 projMat = glm::perspective(glm::radians(45.0f), (float)winSize[0] / (float)winSize[1], 0.1f, 100.0f);
+        float aspect = (height > 0) ? ((float)width / (float)height) : 1.0f;
+        glm::mat4 projMat = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
 
         int instObjectNum = payload.spatialMats->size();
         
@@ -403,14 +411,14 @@ namespace Engine {
                       GL_DYNAMIC_DRAW);
 
         int dataPerColor = 3; // RBG
-        glVertexAttribPointer( numOfInstanceObjects, 
+        glVertexAttribPointer( 5, // not the number of particles but instead the location specified in shader 
                                dataPerColor, 
                                GL_FLOAT, 
                                GL_FALSE, 
                                sizeof(glm::vec3), 
                                (void*)0 );
-        glEnableVertexAttribArray(numOfInstanceObjects);
-        glVertexAttribDivisor(numOfInstanceObjects, 1); // Step once per particle instance
+        glEnableVertexAttribArray(5);
+        glVertexAttribDivisor(5, 1); // Step once per particle instance
 
         // EBO (order of reading the geometry vertices)
         glGenBuffers(1, &EBO);
