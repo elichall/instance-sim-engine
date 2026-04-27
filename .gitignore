@@ -22,7 +22,7 @@ __pycache__/
 # Simulation Output Data
 # =========================
 # Ignore generated CSVs so you don't accidentally push 2GB of physics data to GitHub
-*.csv
+
 
 # (Optional) If you want to keep ONE small sample CSV to prove the script works, 
 # you can force Git to track it by adding an exclamation point:

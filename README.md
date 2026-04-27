@@ -8,7 +8,7 @@ This engine was built from scratch to decouple complex mathematical solvers from
 The core engine provides the physics abstractions and rendering pipeline, while specific engineering and physics simulations are containerized as individual "Apps".
 
 * **[Orbital 3-Body Simulation](./apps/orbital_3-body/README.md)** - A numerically stable $N$-body gravity simulator demonstrating Symplectic Euler integration and the Montgomery-Chen Figure-8 solution.
-* **[Robotic Manipulator (WIP)](#)** - Forward/Inverse kinematics visualization utilizing D-H parameter transformation matrices.
+* **[Robotic Manipulator](./apps/robotic_manipulator/README.md)** - Forward kinematics visualization utilizing Denavit-Hartenberg (D-H) parameter transformation matrices and dynamic control-path tracing.
 
 ## Dependencies
 * **C++ Engine:** OpenGL (3.3+), GLFW, GLAD, GLM
@@ -25,9 +25,8 @@ cmake ..
 # 2. Compile the engine (Uses all available CPU cores)
 make -j$(nproc)
 
-# 3. Execute the target App
+# 3. Execute the target App (e.g., OrbitalSim or RoboticSim)
 ./OrbitalSim
-```
 
 ## Profiling & Analysis
 The engine natively logs millisecond-accurate profiling data and physical system states to a CSV. To generate the engineering validation reports:
@@ -42,7 +41,7 @@ python apps/orbital_3-body/analyze_orbital.py
 
 ## AI Usage Acknowledgment
 
-This project utilized a Large Language Model (Gemini) as an interactive technical partner to assist in the architectural unification and validation of the simulation engine. The collaboration focused on translating high-level engineering goals into performant C++ and Python implementations.
+This project utilized Large Language Models (Gemini & Claude) as an interactive technical partner to assist in the architectural unification and validation of the simulation engine. The collaboration focused on translating high-level engineering goals into performant C++ and Python implementations. The primary purpose of which was to learn and refine skills not taught through classical mechanical engineering education.
 
 Key areas of AI assistance included:
 
