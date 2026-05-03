@@ -9,24 +9,28 @@ The core engine provides the physics abstractions and rendering pipeline, while 
 
 * **[Orbital 3-Body Simulation](./apps/orbital_3-body/README.md)** - A numerically stable $N$-body gravity simulator demonstrating Symplectic Euler integration and the Montgomery-Chen Figure-8 solution.
 * **[Robotic Manipulator](./apps/robotic_manipulator/README.md)** - Forward kinematics visualization utilizing Denavit-Hartenberg (D-H) parameter transformation matrices and dynamic control-path tracing.
+* **[N-Body Galaxy Benchmark](./apps/test_benchmark/README.md)** - A multi-threaded $\mathcal{O}(N^2)$ gravity stress test simulating a 5,000+ particle spiral galaxy via a Plummer Sphere distribution. Showcases OpenMP parallelization and SIMD-friendly inverse square root approximations.
 
 ## Dependencies
-* **C++ Engine:** OpenGL (3.3+), GLFW, GLAD, GLM
+* **C++ Engine:** OpenGL (3.3+), GLFW, GLAD, GLM, OpenMP
 * **Data Analysis:** Python 3, Pandas, Matplotlib
 
 ## Build & Execute Instructions
-This project uses a standard out-of-source CMake build sequence.
+This project uses a standard out-of-source CMake build sequence. It is highly recommended to build in Release mode to enable `-O3` and `-ffast-math` compiler optimizations for the physics solver.
 
 ```bash
-# 1. Generate build files
+# 1. Generate build files with hardware optimization enabled
 mkdir build && cd build
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Release ..
 
 # 2. Compile the engine (Uses all available CPU cores)
 make -j$(nproc)
 
-# 3. Execute the target App (e.g., OrbitalSim or RoboticSim)
+# 3. Execute the target App
 ./OrbitalSim
+./RoboticSim
+./BenchmarkSim
+```
 
 ## Profiling & Analysis
 The engine natively logs millisecond-accurate profiling data and physical system states to a CSV. To generate the engineering validation reports:
@@ -46,8 +50,8 @@ This project utilized Large Language Models (Gemini & Claude) as an interactive 
 Key areas of AI assistance included:
 
 * **Architectural Sounding Board:** Providing feedback on Data-Oriented Design (SoA) patterns and monorepo structure to ensure long-term project scalability.
-* **Computational Physics Tutoring:** Advising on the selection and implementation of symplectic integration methods to maintain numerical stability in chaotic systems.
-* **Technical Troubleshooting:** Assisting with the configuration of modern C++ build systems (CMake), graphics pipeline debugging, and environment management.
+* **Computational Physics Tutoring:** Advising on the selection and implementation of symplectic integration methods to maintain numerical stability in chaotic systems, as well as applying inverse transform sampling for astrophysics distributions.
+* **Technical Troubleshooting:** Assisting with the configuration of modern C++ build systems (CMake), OpenMP multithreading constraints, graphics pipeline debugging, and environment management.
 * **Documentation & Reporting:** Collaborative drafting of technical documentation and automated analysis scripts to visualize engine performance.
 
 **Human-Driven Logic:** While AI served as a valuable tool for accelerating development and enforcing industry best practices, the core structural decisions, logic synthesis, and final implementation remain entirely human-driven. Critical optimizations and the strategic isolation of profiling metrics to preserve real-time performance are the direct result of human architectural intuition and project vision.
