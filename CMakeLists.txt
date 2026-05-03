@@ -5,9 +5,12 @@ project(InstanceSimEngine VERSION 1.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math")
+
 # --- 1. System Dependencies (Linux) ---
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
+find_package(OpenMP REQUIRED)
 
 # --- 2. Vendor Dependencies (Local) ---
 # Compile GLAD into a library
@@ -31,3 +34,6 @@ target_link_libraries(OrbitalSim glad glm glfw OpenGL::GL)
 
 add_executable(RoboticSim apps/robotic_manipulator/main.cpp src/GraphicsEngine.cpp)
 target_link_libraries(RoboticSim glad glm glfw OpenGL::GL)
+
+add_executable(BenchmarkSim apps/test_benchmark/main.cpp src/GraphicsEngine.cpp)
+target_link_libraries(BenchmarkSim glad glm glfw OpenGL::GL OpenMP::OpenMP_CXX)
