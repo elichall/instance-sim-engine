@@ -21,7 +21,7 @@ public:
         glm::mat4 scalingMat = glm::scale(glm::mat4(1.0f), glm::vec3(diameter));
 
         spatialMats.push_back(rotTranMat * scalingMat);
-        positions.push_back(spatialMats.back()[3]);
+        positions.push_back(pos);
         colors.push_back(color);
         velocityVec.push_back(vel);
         masses.push_back(mass);
