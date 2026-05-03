@@ -23,18 +23,17 @@ To simulate and render thousands of interacting bodies in real-time, the engine 
 * **Initial Conditions:** Inverse Transform Sampling is used to map particles to a **Plummer Density Profile** ($r = a / \sqrt{u^{-2/3} - 1}$). The sphere is flattened into a disk, and stars are initialized with precise tangential velocities ($v = \sqrt{\frac{GM}{r}}$) relative to a supermassive core.
 * **Softening Parameter:** An $\epsilon$ softening factor is added to the gravitational denominator to prevent $1/0$ singularities (infinite acceleration) during close-proximity particle collisions.
 
-## Benchmark Metrics.
+## 📊 Benchmark Metrics
+Tested on an Intel i7 processor running Ubuntu Linux via WSL2. 
 
-| Particle Count | Physics Compute Time ($\mathcal{O}(N^2)$) | Render Time ($\mathcal{O}(N)$) | Real-Time FPS |
-|----------------|-------------------------------------------|--------------------------------|---------------|
-| 1,000          | ~3.5 ms                                   | ~12.5 ms                       | 150+ FPS      |
-| 2,000          | ~11.0 ms                                  | ~13.5 ms                       | 100+ FPS      |
-| 5,000          | ~50.0 ms                                  | ~15.0 ms                       | ~30-40 FPS    |
+| Particle Count | Avg. Physics Tick $\mathcal{O}(N^2)$ | Total Render Time/Sec | Real-Time FPS |
+|----------------|--------------------------------------|-----------------------|---------------|
+| 1,000          | ~2.8 ms                              | ~832 ms               | ~128 FPS      |
+| 2,000          | ~3.1 ms                              | ~816 ms               | ~85 FPS       |
+| 5,000          | ~9.0 ms                              | ~451 ms               | ~26 FPS       |
 
-*(Note: Render time scales linearly and remains highly stable; performance drops at massive scales are purely bound by CPU $\rightarrow$ RAM memory bandwidth during gravity accumulation).*
-
-Hardware Context & WSL2 Virtualization:
-These benchmarks were recorded on an Intel i7 processor running Ubuntu via WSL2. Due to WSLg GPU-passthrough limitations at the time of recording, the OpenGL pipeline defaulted to llvmpipe (CPU Software Rendering). The fact that the engine maintains 100+ FPS on a 2,000-body $O(N^2)$ simulation while the CPU is simultaneously handling all vertex and fragment shading is a testament to the extreme efficiency of the SoA cache architecture and OpenMP math vectorization.
+> **Hardware Context & WSL2 Virtualization:**
+> *These benchmarks were recorded on an Intel i7 processor running Ubuntu via WSL2. Due to WSLg GPU-passthrough limitations at the time of recording, the OpenGL pipeline defaulted to `llvmpipe` (CPU Software Rendering). The fact that the engine maintains 85+ FPS on a 2,000-body $O(N^2)$ simulation—while the CPU is simultaneously handling all vertex and fragment shading—is a testament to the extreme efficiency of the SoA cache architecture and OpenMP math vectorization.*
 
 ## Build Instructions (Linux)
 

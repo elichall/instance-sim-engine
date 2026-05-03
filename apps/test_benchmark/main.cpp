@@ -16,7 +16,7 @@
 int main() {
     // --- Benchmark Configuration ---
     const int numOfParticles = 1000;
-    std::array<int, 2> MY_WINDOW_AREA = {1600, 1600};
+    std::array<int, 2> MY_WINDOW_AREA = {800, 800};
     std::array<int, 2> resolution = {8, 4}; // LOD Spheres!
     
     // Engine(Shape, maxCapacity, windowSize, wireframe, resolution, lines, maxLines, dynamicColor)
@@ -114,54 +114,60 @@ int main() {
 
     double previousTime = glfwGetTime();
     int frameCount = 0;
+    int totalPhysicsTicks = 0; // NEW: Track exact ticks for accurate averages
+    
     double physTime = 0.0;
     double renderTime = 0.0;
-    double frameTime = 0.0;
 
     std::cout << "Starting benchmark. Logging to benchmark_performance.csv..." << std::endl;
 
     // --- Main Simulation Loop ---
     while (!engine.shouldClose()) {
         float currentTime = static_cast<float>(glfwGetTime());
-        float frameTime = currentTime - t;
+        float currentDelta = currentTime - t; // Renamed to avoid shadowing
         t = currentTime;
 
         frameCount++;
         if (currentTime - previousTime >= 1.0) {
+            
+            // Calculate the true average time of a single physics tick
+            double avgPhysTick = (totalPhysicsTicks > 0) ? (physTime * 1000.0) / totalPhysicsTicks : 0.0;
+
             logFile << numOfParticles << "," 
                     << (physTime * 1000) << "," 
                     << (renderTime * 1000) << "," 
                     << frameCount << "\n";
             
             // Print real-time stats to terminal
-            std::cout << "FPS: " << frameCount << " | Phys: " << (physTime*1000) << "ms | Frame (avg): " << (frameTime*1000) << "ms | Render: " << (renderTime*1000) << "ms\n";
+            std::cout << "FPS: " << frameCount 
+                      << " | Avg Phys Tick: " << avgPhysTick << "ms"
+                      << " | Total Phys: " << (physTime*1000) << "ms"
+                      << " | Render: " << (renderTime*1000) << "ms\n";
 
             frameCount = 0;
+            totalPhysicsTicks = 0;
             previousTime = currentTime;
             physTime = double(0);
             renderTime = double(0);
         }
 
-        if (frameTime > 0.25f) frameTime = 0.25f; // Catch lag spikes
-        accumulator += frameTime;
+        if (currentDelta > 0.25f) currentDelta = 0.25f; // Catch lag spikes
+        accumulator += currentDelta;
 
         // --- Physics Step ---
-        int subSteps = 0;
         double framePhysTime = 0.0;
 
         while (accumulator >= dt) {
             double physStart = glfwGetTime();
             orbitalPhysics(sys, dt);
             framePhysTime += glfwGetTime() - physStart;
-            physTime += framePhysTime;
             
             accumulator -= dt;
-            subSteps++;
+            totalPhysicsTicks++;
         }
-
-        if (subSteps > 0) {
-            frameTime += (framePhysTime / subSteps);
-        }
+        
+        // Add to the total 1.0s tracker exactly ONCE per frame
+        physTime += framePhysTime; 
         
         // --- Render Step ---
         double renderStart = glfwGetTime();
