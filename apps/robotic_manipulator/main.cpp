@@ -16,7 +16,7 @@
 
 int main() {
     // Initalize engine
-    Engine::GraphicsEngine engine(Engine::CUBE, INSTANCE_OBJECTS_NUMBER_EST, MY_WINDOW_AREA, true, LINE_DATA_LENGTH_EST);
+    Engine::GraphicsEngine engine(Engine::CUBE, INSTANCE_OBJECTS_NUMBER_EST, MY_WINDOW_AREA, true, {1, 1}, true, LINE_DATA_LENGTH_EST, false);
     if (!engine.init()) return -1;
     Engine::RenderPayload payload;
 
