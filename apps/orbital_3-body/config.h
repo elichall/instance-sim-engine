@@ -5,6 +5,7 @@
 
 const std::array<int,2> MY_WINDOW_AREA = {800, 800};
 const int numOfParticles = 3;
+const std::array<int,2> resolution = {12, 6};
 
 const float gravConst = 1.0f; // 6.6743 * powf(10,-11)
 

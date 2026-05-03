@@ -1,26 +1,23 @@
 #ifndef PHYSICS_H
 #define PHYSICS_H
 
-#include <algorithm> // fill
-
 #include "particle.h"
 
 void orbitalPhysics(ParticleSystem& system, float dt) {
-    int sysSize = system.spatialMats.size();
-
-    std::fill(system.accelerations.begin(), system.accelerations.end(), glm::vec3(0.0f)); // wipe accelerations
+    int sysSize = system.positions.size();
 
     for (int i=0; i<sysSize; i++) {
         for (int j=i+1; j<sysSize; j++) {
-            glm::vec3 posI = system.spatialMats[i][3];
-            glm::vec3 posJ = system.spatialMats[j][3];
+            glm::vec3 posI = system.positions[i];
+            glm::vec3 posJ = system.positions[j];
 
             glm::vec3 rVec = posJ - posI;
 
             float rSquared = glm::dot(rVec, rVec);
-            float rCubed = rSquared * glm::sqrt(rSquared);
+            float invR = 1.0f / glm::sqrt(rSquared);
+            float invRCubed = invR * invR * invR;
 
-            glm::vec3 accOverMass = gravConst / rCubed * rVec;
+            glm::vec3 accOverMass = gravConst * invRCubed * rVec;
 
             system.accelerations[i] += accOverMass * system.masses[j];
             system.accelerations[j] -= accOverMass * system.masses[i];
@@ -34,12 +31,14 @@ void orbitalPhysics(ParticleSystem& system, float dt) {
         */
         system.velocityVec[i] += system.accelerations[i] * dt;
 
-        glm::vec3 dx = system.velocityVec[i] * dt; 
+        system.positions[i] += system.velocityVec[i] * dt; 
         
         // glm uses column row notation
-        system.spatialMats[i][3][0] += dx.x;
-        system.spatialMats[i][3][1] += dx.y;
-        system.spatialMats[i][3][2] += dx.z;
+        system.spatialMats[i][3][0] = system.positions[i].x;
+        system.spatialMats[i][3][1] = system.positions[i].y;
+        system.spatialMats[i][3][2] = system.positions[i].z;
+
+        system.accelerations[i] = glm::vec3(0.0f);
     }
 }
 

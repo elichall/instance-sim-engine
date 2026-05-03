@@ -13,9 +13,10 @@ namespace Engine {
 
     struct InstanceObjectShape {
     public:
-        InstanceObjectShape(int desiredInstanceShape);
+        InstanceObjectShape(int desiredInstanceShape, std::array<int,2> resolution);
 
         int instanceShape;
+        std::array<int,2> resolution;
 
         std::vector<GLfloat> shapeVertices;
         std::vector<GLuint>  shapeIndices;
@@ -62,9 +63,12 @@ namespace Engine {
         // --- Constructor ---
         GraphicsEngine( int instanceShape, 
                         int maxInstanceCapacity=10, 
-                        std::array<int,2> windowSize={800,800}, 
+                        std::array<int,2> windowSize={800,800},
+                        bool usingWireFrame=true,
+                        std::array<int,2> resolution={36,18}, 
                         bool usingLineFlag=false,
-                        int maxLinePoints=1000 );
+                        int maxLinePoints=1000,
+                        bool dynamicColorFlag=false );
         // --- Destructor ---
         ~GraphicsEngine();
 
@@ -75,18 +79,24 @@ namespace Engine {
         void renderFrame(const RenderPayload& payload);
         // watches for closed window
         bool shouldClose();
+        // if the colors are static, pass the colors to the engine
+
 
     private:
         // --- Flags ---
         bool isLine; // is the engine going to be dealing with lines
-        int maxCapacity; // estimated max capacity of instanced objects over sim
-        std::array<int,2> winSize;
-        int maxLineSize;
-        bool isDragging=false;
+        bool isFrame; // does the user want wire frames
+        bool isDragging=false; // a flag for the camera
+        bool isDynamicColor; // does the engine need to dynamically update color
+        bool staticColorsAssigned=false; // has the engine been assigned static color
 
         // --- Stored Values ---
         float lastX;
         float lastY;
+
+        int maxCapacity; // estimated max capacity of instanced objects over sim
+        std::array<int,2> winSize;
+        int maxLineSize;
 
         // --- Private Methods ---
         // Shaders

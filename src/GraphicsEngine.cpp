@@ -24,13 +24,18 @@ namespace Engine {
     GraphicsEngine::GraphicsEngine( int instanceShape, 
                                     int maxInstanceCapacity,
                                     std::array<int,2> windowSize,
+                                    bool usingWireFrame,
+                                    std::array<int,2> resolution,
                                     bool usingLineFlag,
-                                    int maxLinePoints ) 
-                                    : shape(instanceShape), 
+                                    int maxLinePoints,
+                                    bool dynamicColorFlag ) 
+                                    : shape(instanceShape,resolution), 
                                       maxCapacity(maxInstanceCapacity), 
                                       winSize(windowSize),
+                                      isFrame(usingWireFrame),
                                       isLine(usingLineFlag),
                                       maxLineSize(maxLinePoints),
+                                      isDynamicColor(dynamicColorFlag),
                                       camera(windowSize) {
                                         lastX = windowSize[0] / 2;
                                         lastY = windowSize[1] / 2;
@@ -165,18 +170,30 @@ namespace Engine {
                          0,                                 // Byte Offset
                          instObjectNum * sizeof(glm::mat4), // Total Byte Size
                          payload.spatialMats->data() );   // Pointer to start of data in memory block
-        
-        glBindBuffer(GL_ARRAY_BUFFER, colorVBO);
-        glBufferSubData( GL_ARRAY_BUFFER, 
-                         0, 
-                         instObjectNum * sizeof(glm::vec3), 
-                         payload.colors->data() );
+
+        // dynamic colors upload every single frame
+        if (isDynamicColor && payload.colors != nullptr) {
+            glBindBuffer(GL_ARRAY_BUFFER, colorVBO);
+            glBufferSubData( GL_ARRAY_BUFFER, 
+                             0, 
+                             instObjectNum * sizeof(glm::vec3), 
+                             payload.colors->data() );
+        }
+        // static colors upload once on the very first frame
+        else if (!isDynamicColor && payload.colors != nullptr && !staticColorsAssigned) {
+            glBindBuffer(GL_ARRAY_BUFFER, colorVBO);
+            glBufferSubData( GL_ARRAY_BUFFER, 
+                             0, 
+                             instObjectNum * sizeof(glm::vec3), 
+                             payload.colors->data() );
+            
+            staticColorsAssigned = true;
+        }
 
         glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind to protect state
 
         // --- Draw the Solid Cubes ---
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glUniform1i(isWireframeLoc, 0); // toggle solid fill (use instance colors)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // toggle solid fill (use instance colors)
 
         int numCubeIndices = shape.shapeIndices.size();
         glDrawElementsInstanced( GL_TRIANGLES,    // type of primitive
@@ -185,23 +202,28 @@ namespace Engine {
                                  0,               // number of verticies from start we want to draw
                                  instObjectNum );  // number of object instances
 
-        // --- Draw the Wireframe Edges ---
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        // Set color to Black (RGBA)
-        glUniform1i(isWireframeLoc, 1); // Toggle wireframe mode
-        glUniform4f(wireframeColorLoc, 0.0f, 0.0f, 0.0f, 1.0f);
-        
-        // Apply offset to stop clipping
-        glEnable(GL_POLYGON_OFFSET_LINE);
-        glPolygonOffset(-1.0f, -1.0f); 
-        // actually draw wireframe
-        glDrawElementsInstanced( GL_TRIANGLES, 
-                                 numCubeIndices, 
-                                 GL_UNSIGNED_INT, 
-                                 0, 
-                                 instObjectNum);
-        // disable offset to prevent issues next frame
-        glDisable(GL_POLYGON_OFFSET_LINE);
+        if (isFrame) {
+            // --- Draw the Wireframe Edges ---
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            // Set color to Black (RGBA)
+            glUniform1i(isWireframeLoc, 1); // Toggle wireframe mode
+            glUniform4f(wireframeColorLoc, 0.0f, 0.0f, 0.0f, 1.0f);
+            
+            // Apply offset to stop clipping
+            glEnable(GL_POLYGON_OFFSET_LINE);
+            glPolygonOffset(-1.0f, -1.0f); 
+            // actually draw wireframe
+            glDrawElementsInstanced( GL_TRIANGLES, 
+                                    numCubeIndices, 
+                                    GL_UNSIGNED_INT, 
+                                    0, 
+                                    instObjectNum);
+            // disable offset to prevent issues next frame
+            glDisable(GL_POLYGON_OFFSET_LINE);
+
+            // update shader status
+            glUniform1i(isWireframeLoc, 0);
+        }
         
         // Draw any lines the user specifies
         if (isLine && payload.lines != nullptr && !payload.lines->empty()) { // double protection
@@ -300,8 +322,14 @@ namespace Engine {
         modelLoc = glGetUniformLocation(shaderProgram, "model");
         viewLoc = glGetUniformLocation(shaderProgram, "view");
         projLoc = glGetUniformLocation(shaderProgram, "projection");
+
         wireframeColorLoc = glGetUniformLocation(shaderProgram, "wireframeColor");
         isWireframeLoc = glGetUniformLocation(shaderProgram, "isWireframe");
+
+        // set shader default
+        glUseProgram(shaderProgram);
+        glUniform1i(isWireframeLoc, 0); 
+        glUseProgram(0); // Unbind just to be safe
 
         // --- Do the Same for Line ---
         if (isLine) {
@@ -343,6 +371,7 @@ namespace Engine {
             lineViewLoc = glGetUniformLocation(lineShaderProgram, "view");
             lineProjLoc = glGetUniformLocation(lineShaderProgram, "projection");
             lineColorLoc = glGetUniformLocation(lineShaderProgram, "lineColor");
+
         }
 
         return true;
@@ -492,8 +521,9 @@ namespace Engine {
     ==============================================================================================
     */
     // --- Constructor ---
-    InstanceObjectShape::InstanceObjectShape(int desiredInstanceShape) {
-        instanceShape = desiredInstanceShape;
+    InstanceObjectShape::InstanceObjectShape(int desiredInstanceShape, std::array<int,2> resolution) {
+        this->instanceShape = desiredInstanceShape;
+        this->resolution = resolution;
         fillShapeContainers();
     }
 
@@ -530,8 +560,8 @@ namespace Engine {
     void InstanceObjectShape::buildSphere() {
         float radius = 0.5f; // 1 unit diameter sphere
 
-        int sectors = 36;
-        int stacks = 18;
+        int sectors = resolution[0];
+        int stacks = resolution[1];
 
         for (int i = 0; i <= stacks; i++) {
             float ph = M_PI / 2.0f - M_PI * (float)i / (float)stacks;
