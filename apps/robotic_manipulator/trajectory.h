@@ -6,7 +6,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include <algorithm> // For std::min
+#include <algorithm>
 #include <glm/glm.hpp>
 #include "robot.h"
 
@@ -31,20 +31,18 @@ inline std::vector<glm::vec3> loadDesiredPath(const std::string& filepath) {
         try {
             if (std::getline(ss, token, ',')) x = std::stof(token);
             if (std::getline(ss, token, ',')) y = std::stof(token);
-            
-            // Set Z to 0.0f for a 2D planar path
             path.push_back(glm::vec3(x, y, 0.0f));
         } catch (...) {
-            std::cerr << "WARNING: Failed to parse coordinate: " << line << "\n";
+            // Ignore bad lines
         }
     }
-    
     std::cout << "SUCCESS: Loaded " << path.size() << " desired path coordinates.\n";
     return path;
 }
 
 // Loads the control path from control-path.csv (Rows: theta 1, d, theta 2)
-inline std::vector<RobotState> loadControlPath(const std::string& filepath, float dt = 0.05f) {
+// Adapted for a 1000 Hz control loop (dt = 0.001 seconds)
+inline std::vector<RobotState> loadControlPath(const std::string& filepath, float dt = 0.001f) {
     std::vector<RobotState> data;
     std::ifstream file(filepath);
 
@@ -55,30 +53,29 @@ inline std::vector<RobotState> loadControlPath(const std::string& filepath, floa
 
     std::string line;
     std::vector<float> theta1, d, theta2;
+    int rowIndex = 0;
 
-    // Read the file horizontally
+    // Read the file horizontally by Row Index instead of String Headers
     while (std::getline(file, line)) {
         if (line.empty()) continue;
         std::stringstream ss(line);
         std::string token;
         
-        // First token is the row header (e.g., "theta 1")
-        std::getline(ss, token, ',');
-        
         std::vector<float>* targetList = nullptr;
-        if (token.find("theta 1") != std::string::npos) targetList = &theta1;
-        else if (token.find("d") != std::string::npos) targetList = &d;
-        else if (token.find("theta 2") != std::string::npos) targetList = &theta2;
+        if (rowIndex == 0) targetList = &theta1;
+        else if (rowIndex == 1) targetList = &d;
+        else if (rowIndex == 2) targetList = &theta2;
 
         if (targetList) {
             while (std::getline(ss, token, ',')) {
                 try {
                     targetList->push_back(std::stof(token));
                 } catch (...) {
-                    // Ignore trailing commas or bad string conversions
+                    // Ignore empty trailing commas
                 }
             }
         }
+        rowIndex++;
     }
 
     // Assemble the rows vertically into RobotStates
@@ -86,7 +83,7 @@ inline std::vector<RobotState> loadControlPath(const std::string& filepath, floa
     for (size_t i = 0; i < numFrames; i++) {
         RobotState state;
         
-        // Since control-path.csv doesn't have explicit timestamps, we assign them sequentially
+        // Map the columns to exact 1000 Hz physical time
         state.time = static_cast<float>(i) * dt; 
         
         state.theta1 = theta1[i];
@@ -96,7 +93,8 @@ inline std::vector<RobotState> loadControlPath(const std::string& filepath, floa
         data.push_back(state);
     }
 
-    std::cout << "SUCCESS: Loaded " << data.size() << " control frames from " << filepath << "\n";
+    std::cout << "SUCCESS: Loaded " << data.size() << " control frames (" 
+              << data.back().time << " seconds of simulation) from " << filepath << "\n";
     return data;
 }
 

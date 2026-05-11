@@ -51,7 +51,7 @@ int main() {
 
     // Time Management Variables
     float systemTime = 0.0f;
-    float timeFactor = 1.0f; // Adjusted for the new dt timestep
+    float timeFactor = 10.0f; // Adjusted for the new dt timestep
     int currentIndex = 0;
     double lastTime = glfwGetTime();
 
