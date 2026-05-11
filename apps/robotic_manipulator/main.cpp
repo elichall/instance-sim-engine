@@ -22,14 +22,24 @@ int main() {
 
     // Setup Robot & Data
     RobotSystem robot;
-    std::vector<RobotState> trajectory = loadSimulationData("../apps/robotic_manipulator/data/trajectory.csv");
-    if (trajectory.empty()) return -1;
     
-    // Make fake line data for testing line draws 
-    // An actual application would just make the line data the robot end effector center position
-    std::vector<glm::vec3> desiredPath, actualPath;
-    int totalFrames = trajectory.size();
-    generateTestPaths(totalFrames, desiredPath, actualPath);
+    // 1. Load the computed joint angles
+    std::vector<RobotState> trajectory = loadControlPath("../apps/robotic_manipulator/data/control-path.csv");
+    
+    // 2. Load the ideal trajectory to compare against
+    std::vector<glm::vec3> desiredPath = loadDesiredPath("../apps/robotic_manipulator/data/trajectory.csv");
+    
+    if (trajectory.empty() || desiredPath.empty()) return -1;
+    
+    // 3. Pre-calculate the ACTUAL path by running the joint angles through the Forward Kinematics 
+    std::vector<glm::vec3> actualPath;
+    for (const auto& state : trajectory) {
+        updateManipulatorKinematics(robot, state);
+        // The end effector is the final link in the hierarchy (index 4).
+        // The translation vector (x,y,z) is stored in the 4th column of its transformation matrix.
+        glm::vec3 endEffectorPos = glm::vec3(robot.spatialMats[4][3]);
+        actualPath.push_back(endEffectorPos);
+    }
 
     std::vector<Engine::LineData> traceLines(2);
     traceLines[0].points = desiredPath;
@@ -41,7 +51,7 @@ int main() {
 
     // Time Management Variables
     float systemTime = 0.0f;
-    float timeFactor = 5.0f;
+    float timeFactor = 1.0f; // Adjusted for the new dt timestep
     int currentIndex = 0;
     double lastTime = glfwGetTime();
 
@@ -65,7 +75,7 @@ int main() {
         }
 
         // --- Kinematics ---
-        // if the frame time is not precisely on a calculated timestep, interpolate linearly
+        // Interpolate linearly if not perfectly on a timestep
         RobotState interpolatedState;
         for (size_t i = currentIndex; i < trajectory.size() - 1; i++) {
             if (systemTime >= trajectory[i].time && systemTime < trajectory[i+1].time) {
@@ -83,7 +93,6 @@ int main() {
         updateManipulatorKinematics(robot, interpolatedState);
 
         // Update line draw count for actual path to acheive an animation effect
-        // keep the desired path's draw count at its full length
         traceLines[1].drawCount = currentIndex;
 
         // --- Render Frame ---

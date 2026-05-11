@@ -9,7 +9,7 @@ const std::array<int,2> MY_WINDOW_AREA = {800, 800};
 const int LINE_DATA_LENGTH_EST = 2000;
 
 // Physical Constants
-const float link2Length = 1.0f; 
+const float link2Length = 0.8f; 
 const float linkWidth = 0.1f;
 const float baseWidth = 0.2f;
 const float baseHeight = 0.3f;
