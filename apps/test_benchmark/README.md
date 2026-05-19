@@ -23,17 +23,21 @@ To simulate and render thousands of interacting bodies in real-time, the engine 
 * **Initial Conditions:** Inverse Transform Sampling is used to map particles to a **Plummer Density Profile** ($r = a / \sqrt{u^{-2/3} - 1}$). The sphere is flattened into a disk, and stars are initialized with precise tangential velocities ($v = \sqrt{\frac{GM}{r}}$) relative to a supermassive core.
 * **Softening Parameter:** An $\epsilon$ softening factor is added to the gravitational denominator to prevent $1/0$ singularities (infinite acceleration) during close-proximity particle collisions.
 
-## 📊 Benchmark Metrics
-Tested on an Intel i7 processor running Ubuntu Linux via WSL2. 
+## 📊 Benchmark Metrics & Hardware Scaling
+To validate the architectural efficiency of the engine, benchmarks were recorded across two distinct hardware and OS environments. 
 
-| Particle Count | Avg. Physics Tick $\mathcal{O}(N^2)$ | Total Render Time/Sec | Real-Time FPS |
-|----------------|--------------------------------------|-----------------------|---------------|
-| 1,000          | ~2.8 ms                              | ~832 ms               | ~128 FPS      |
-| 2,000          | ~3.1 ms                              | ~816 ms               | ~85 FPS       |
-| 5,000          | ~9.0 ms                              | ~451 ms               | ~26 FPS       |
+**1. Virtualization Baseline:** An Intel i7 (Windows 11 / WSL2). Due to WSLg virtualization limitations, the GPU was bypassed, forcing the CPU to handle both the $O(N^2)$ math and `llvmpipe` software rendering.
+**2. Bare-Metal Environment:** An older Intel i5 (Arch Linux). Running natively, the CPU handled exclusively physics while the integrated GPU (iGPU) handled the OpenGL instanced rendering.
 
-> **Hardware Context & WSL2 Virtualization:**
-> *These benchmarks were recorded on an Intel i7 processor running Ubuntu via WSL2. Due to WSLg GPU-passthrough limitations at the time of recording, the OpenGL pipeline defaulted to `llvmpipe` (CPU Software Rendering). The fact that the engine maintains 85+ FPS on a 2,000-body $O(N^2)$ simulation—while the CPU is simultaneously handling all vertex and fragment shading—is a testament to the extreme efficiency of the SoA cache architecture and OpenMP math vectorization.*
+| Particle Count | Environment | Avg. Physics Tick | Total Render Time/Sec | Real-Time FPS |
+|----------------|-------------|-------------------|-----------------------|---------------|
+| 2,000          | i7 (WSL2)   | ~3.1 ms           | ~816 ms               | ~85 FPS       |
+| **2,000** | **i5 (Arch)**| **~4.0 ms*** | **~750 ms** | **~1,500 FPS**|
+| 5,000          | i7 (WSL2)   | ~9.0 ms           | ~451 ms               | ~26 FPS       |
+| **5,000** | **i5 (Arch)**| **Thermal Limit** | **N/A** | **~3 FPS** |
+
+> **Thermodynamics & The Memory Wall:**
+> *Running the engine natively on Arch Linux unlocked the OpenGL hardware pipeline, removing the rendering bottleneck and allowing the simulation to free-wheel at over 2,500 FPS "cold", and sustaining **~1,500 FPS** once thermal equilibrium was reached. However, at 5,000 particles (12.5 million gravity interactions per tick), the older i5 processor hit a hard thermal and L3 cache wall. The 100% OpenMP core utilization triggered aggressive thermal throttling, effectively proving that the software architecture has successfully shifted the simulation bottleneck from CPU draw-calls to raw hardware thermodynamic and memory-bandwidth limits.*
 
 ## Build Instructions (Linux)
 
