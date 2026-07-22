@@ -12,25 +12,119 @@ The core engine provides the physics abstractions and rendering pipeline, while 
 * **[N-Body Galaxy Benchmark](./apps/test_benchmark/README.md)** - A multi-threaded $\mathcal{O}(N^2)$ gravity stress test simulating a 5,000+ particle spiral galaxy via a Plummer Sphere distribution. Showcases OpenMP parallelization and SIMD-friendly inverse square root approximations.
 
 ## Dependencies
-* **C++ Engine:** OpenGL (3.3+), GLFW, GLAD, GLM, OpenMP
+* **C++ Engine:** OpenGL (3.3+), GLFW, GLAD, GLM
+* **Optional:** OpenMP (only for N-Body Galaxy Benchmark)
 * **Data Analysis:** Python 3, Pandas, Matplotlib
 
 ## Build & Execute Instructions
-This project uses a standard out-of-source CMake build sequence. It is highly recommended to build in Release mode to enable `-O3` and `-ffast-math` compiler optimizations for the physics solver.
+
+There are three ways to build this project. Pick whichever fits your workflow.
+
+### Option 1: Nix (Recommended)
+
+Requires [Nix](https://nixos.org/download.html) with flakes enabled.
 
 ```bash
-# 1. Generate build files with hardware optimization enabled
-mkdir build && cd build
-cmake -DCMAKE_BUILD_TYPE=Release ..
+# Drop into a dev shell with all dependencies available
+nix develop
 
-# 2. Compile the engine (Uses all available CPU cores)
-make -j$(nproc)
+# Build everything
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
 
-# 3. Execute the target App
-./OrbitalSim
-./RoboticSim
-./BenchmarkSim
+# Run an app
+./build/OrbitalSim
 ```
+
+To build just the engine library (for use in other projects):
+```bash
+nix build .#engine
+# Output: result/lib/libGraphicsEngine.a + result/include/GraphicsEngine.h
+```
+
+### Option 2: System Packages
+
+Install dependencies via your system package manager, then build with CMake.
+
+**Arch Linux:**
+```bash
+sudo pacman -S cmake gcc glfw-x11 glm
+```
+
+**Ubuntu/Debian:**
+```bash
+sudo apt install cmake g++ libglfw3-dev libglm-dev
+```
+
+**Fedora:**
+```bash
+sudo dnf install cmake gcc-c++ glfw-devel glm-devel
+```
+
+Then build:
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+./build/OrbitalSim
+```
+
+### Option 3: Vendor Dependencies
+
+Clone the required headers/libs into `vendor/` for a fully self-contained build.
+
+```bash
+# GLAD (OpenGL 3.3 Core) — generate at https://glad.dav1d.de/
+#   Language: C/C++, API: gl=3.3, Profile: core, Loader: yes
+#   Place output as: vendor/glad/{src/glad.c, include/glad/glad.h, include/KHR/khrplatform.h}
+
+# GLM (header-only math library)
+git clone https://github.com/g-truc/glm.git vendor/glm
+
+# GLFW (install via system packages — too large to vendor)
+#   sudo pacman -S glfw-x11   OR   sudo apt install libglfw3-dev
+```
+
+Then build:
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+./build/OrbitalSim
+```
+
+## Using the Engine in Other Projects
+
+The engine can be consumed as a pre-built static library or by compiling the source directly.
+
+### As a Nix Flake Input
+
+```nix
+# In your project's flake.nix
+inputs = {
+  nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  instance-sim-engine.url = "github:yourname/instance-sim-engine";
+};
+
+outputs = { self, nixpkgs, instance-sim-engine, ... }:
+  # ... per-system setup ...
+  {
+    packages.${system}.my-app = pkgs.stdenv.mkDerivation {
+      buildInputs = [ instance-sim-engine.packages.${system}.engine ];
+      # In your CMakeLists.txt: find_package(InstanceSimEngine REQUIRED)
+    };
+  };
+```
+
+### As a CMake Subdirectory
+
+```cmake
+# Your project's CMakeLists.txt
+add_subdirectory(path/to/instance-sim-engine)
+target_link_libraries(myapp PRIVATE GraphicsEngine)
+```
+
+### By Compiling Source Directly
+
+Copy `src/GraphicsEngine.h` and `src/GraphicsEngine.cpp` into your project, then compile them alongside your code. You will need GLFW, OpenGL, GLM, and GLAD available at link time.
 
 ## Profiling & Analysis
 The engine natively logs millisecond-accurate profiling data and physical system states to a CSV. To generate the engineering validation reports:

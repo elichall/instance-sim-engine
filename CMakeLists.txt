@@ -1,39 +1,43 @@
 cmake_minimum_required(VERSION 3.10)
-project(InstanceSimEngine VERSION 1.0)
+project(InstanceSimEngine VERSION 1.0 LANGUAGES C CXX)
 
-# Use modern C++
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math")
-
-# --- 1. System Dependencies (Linux) ---
+# --- System Dependencies ---
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
-find_package(OpenMP REQUIRED)
 
-# --- 2. Vendor Dependencies (Local) ---
-# Compile GLAD into a library
-add_library(glad vendor/glad/src/glad.c)
-target_include_directories(glad PUBLIC vendor/glad/include)
+# OpenMP only needed for BenchmarkSim
+find_package(OpenMP QUIET)
 
-# GLM is header-only, so we create an "interface" library
-add_library(glm INTERFACE)
-target_include_directories(glm INTERFACE vendor/)
+# --- GLAD: try system/nix, fall back to vendor/ ---
+find_library(GLAD_LIBRARY glad)
+find_path(GLAD_INCLUDE_DIR glad/glad.h)
+if(GLAD_LIBRARY AND GLAD_INCLUDE_DIR)
+  add_library(glad STATIC IMPORTED)
+  set_target_properties(glad PROPERTIES
+    IMPORTED_LOCATION "${GLAD_LIBRARY}"
+    INTERFACE_INCLUDE_DIRECTORIES "${GLAD_INCLUDE_DIR}"
+  )
+  set(GLAD_TARGET glad)
+else()
+  set(GLAD_SOURCES ${CMAKE_SOURCE_DIR}/vendor/glad/src/glad.c)
+  set(GLAD_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/vendor/glad/include)
+  set(GLAD_TARGET "")
+endif()
 
-# --- 3. Core Engine ---
-# Tell the compiler where to look for your engine's .h files
-include_directories(src)
+# --- GLM: try system/nix, fall back to vendor/ ---
+find_package(glm QUIET CONFIG)
+if(NOT glm_FOUND)
+  add_library(glm::glm INTERFACE)
+  target_include_directories(glm::glm INTERFACE ${CMAKE_SOURCE_DIR}/vendor/)
+endif()
 
-# --- 4. The Applications ---
-add_executable(TestGL apps/test_gl/main.cpp)
-target_link_libraries(TestGL glad glm glfw OpenGL::GL)
+option(BUILD_APPS "Build demo applications" ON)
 
-add_executable(OrbitalSim apps/orbital_3-body/main.cpp src/GraphicsEngine.cpp)
-target_link_libraries(OrbitalSim glad glm glfw OpenGL::GL)
-
-add_executable(RoboticSim apps/robotic_manipulator/main.cpp src/GraphicsEngine.cpp)
-target_link_libraries(RoboticSim glad glm glfw OpenGL::GL)
-
-add_executable(BenchmarkSim apps/test_benchmark/main.cpp src/GraphicsEngine.cpp)
-target_link_libraries(BenchmarkSim glad glm glfw OpenGL::GL OpenMP::OpenMP_CXX)
+add_subdirectory(src)
+if(BUILD_APPS)
+  add_subdirectory(apps)
+endif()

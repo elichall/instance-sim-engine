@@ -6,6 +6,9 @@ build/
 .cache/
 compile_commands.json
 
+# Nix build output symlink
+result
+
 # =========================
 # Python Environment
 # =========================
