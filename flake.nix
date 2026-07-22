@@ -15,6 +15,7 @@
         "aarch64-darwin"
       ];
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+
     in
     {
       packages = forAllSystems (
@@ -50,15 +51,27 @@
         in
         {
           default = pkgs.mkShell {
-            buildInputs = [
-              pkgs.glfw
-              pkgs.libGL
-              pkgs.glm
+            buildInputs = with pkgs; [
+              glfw
+              libGL
+              glm
             ];
-            nativeBuildInputs = [
-              pkgs.cmake
-              pkgs.pkg-config
-              pkgs.gcc
+            nativeBuildInputs = with pkgs; [
+              cmake
+              pkg-config
+              gcc
+
+              # lsps
+              clang-tools
+              basedpyright
+
+              (python3.withPackages (
+                ps: with ps; [
+                  pandas
+                  matplotlib
+                  numpy
+                ]
+              ))
             ];
           };
         }
