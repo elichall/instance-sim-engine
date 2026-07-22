@@ -23,3 +23,8 @@ install(EXPORT InstanceSimEngineTargets
   NAMESPACE InstanceSimEngine::
   DESTINATION lib/cmake/InstanceSimEngine
 )
+
+if(NOT GLAD_TARGET)
+  install(DIRECTORY ${GLAD_INCLUDE_DIRS}/glad DESTINATION include)
+  install(DIRECTORY ${GLAD_INCLUDE_DIRS}/KHR DESTINATION include)
+endif()
