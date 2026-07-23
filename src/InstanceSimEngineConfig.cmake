@@ -1,2 +1,5 @@
 include(CMakeFindDependencyMacro)
+find_dependency(OpenGL)
+find_dependency(glfw3)
+find_dependency(glm CONFIG)
 include("${CMAKE_CURRENT_LIST_DIR}/InstanceSimEngineTargets.cmake")
