@@ -12,7 +12,8 @@ The core engine provides the physics abstractions and rendering pipeline, while 
 * **[N-Body Galaxy Benchmark](./apps/test_benchmark/README.md)** - A multi-threaded $\mathcal{O}(N^2)$ gravity stress test simulating a 5,000+ particle spiral galaxy via a Plummer Sphere distribution. Showcases OpenMP parallelization and SIMD-friendly inverse square root approximations.
 
 ## Dependencies
-* **C++ Engine:** OpenGL (3.3+), GLFW, GLAD, GLM
+* **C++ Engine:** OpenGL (3.3+), GLFW, GLM
+* **Vendored:** GLAD (included in `vendor/glad/`)
 * **Optional:** OpenMP (only for N-Body Galaxy Benchmark)
 * **Data Analysis:** Python 3, Pandas, Matplotlib
 
@@ -65,30 +66,23 @@ Then build:
 ```bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j$(nproc)
-./build/OrbitalSim
+./build/apps/OrbitalSim
 ```
 
 ### Option 3: Vendor Dependencies
 
-Clone the required headers/libs into `vendor/` for a fully self-contained build.
+GLAD is vendored in `vendor/glad/`. GLFW can optionally be cloned into `vendor/glfw/` to avoid a system install. GLM must be installed via your system package manager.
 
 ```bash
-# GLAD (OpenGL 3.3 Core) — generate at https://glad.dav1d.de/
-#   Language: C/C++, API: gl=3.3, Profile: core, Loader: yes
-#   Place output as: vendor/glad/{src/glad.c, include/glad/glad.h, include/KHR/khrplatform.h}
-
-# GLM (header-only math library)
-git clone https://github.com/g-truc/glm.git vendor/glm
-
-# GLFW (install via system packages — too large to vendor)
-#   sudo pacman -S glfw-x11   OR   sudo apt install libglfw3-dev
+# Optional: clone GLFW into vendor/ to avoid system install
+git clone https://github.com/glfw/glfw.git vendor/glfw
 ```
 
 Then build:
 ```bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j$(nproc)
-./build/OrbitalSim
+./build/apps/OrbitalSim
 ```
 
 ## Using the Engine in Other Projects
@@ -101,17 +95,32 @@ The engine can be consumed as a pre-built static library or by compiling the sou
 # In your project's flake.nix
 inputs = {
   nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-  instance-sim-engine.url = "github:yourname/instance-sim-engine";
+  instance-sim-engine.url = "github:elichall/instance-sim-engine";
 };
 
 outputs = { self, nixpkgs, instance-sim-engine, ... }:
   # ... per-system setup ...
   {
-    packages.${system}.my-app = pkgs.stdenv.mkDerivation {
+    devShells.${system}.default = pkgs.mkShell {
       buildInputs = [ instance-sim-engine.packages.${system}.engine ];
-      # In your CMakeLists.txt: find_package(InstanceSimEngine REQUIRED)
     };
   };
+```
+
+### As a CMake Package (find_package)
+
+Install the engine first, then consume it from your project:
+
+```bash
+# Build and install the engine
+cmake -B build-engine -DBUILD_APPS=OFF
+cmake --install build-engine
+```
+
+```cmake
+# Your project's CMakeLists.txt
+find_package(InstanceSimEngine REQUIRED)
+target_link_libraries(myapp PRIVATE InstanceSimEngine::GraphicsEngine)
 ```
 
 ### As a CMake Subdirectory

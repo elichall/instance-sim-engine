@@ -5,6 +5,10 @@
 build/
 .cache/
 compile_commands.json
+CMakeFiles/
+CMakeCache.txt
+CMakeFiles/
+CMakeCache.txt
 
 # Nix build output symlink
 result
@@ -20,16 +24,6 @@ env/
 __pycache__/
 *.py[cod]
 *$py.class
-
-# =========================
-# Simulation Output Data
-# =========================
-# Ignore generated CSVs so you don't accidentally push 2GB of physics data to GitHub
-
-
-# (Optional) If you want to keep ONE small sample CSV to prove the script works, 
-# you can force Git to track it by adding an exclamation point:
-# !sample_performance.csv
 
 # =========================
 # OS & Editor Files
