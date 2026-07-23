@@ -10,8 +10,9 @@ CMakeCache.txt
 CMakeFiles/
 CMakeCache.txt
 
-# Nix build output symlink
+# Nix
 result
+.envrc
 
 # =========================
 # Python Environment
