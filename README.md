@@ -33,7 +33,7 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j$(nproc)
 
 # Run an app
-./build/OrbitalSim
+./build/apps/OrbitalSim
 ```
 
 To build just the engine library (for use in other projects):

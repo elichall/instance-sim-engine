@@ -59,7 +59,6 @@
             nativeBuildInputs = with pkgs; [
               cmake
               pkg-config
-              gcc
 
               # lsps
               clang-tools
