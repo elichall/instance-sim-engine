@@ -18,6 +18,10 @@ install(TARGETS GraphicsEngine EXPORT InstanceSimEngineTargets
 )
 install(FILES GraphicsEngine.h DESTINATION include)
 
+install(FILES InstanceSimEngineConfig.cmake
+  DESTINATION lib/cmake/InstanceSimEngine
+)
+
 install(EXPORT InstanceSimEngineTargets
   FILE InstanceSimEngineTargets.cmake
   NAMESPACE InstanceSimEngine::
