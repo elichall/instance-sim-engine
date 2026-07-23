@@ -29,7 +29,7 @@
             version = "1.0";
             src = self;
             cmakeFlags = [ "-DBUILD_APPS=OFF" ];
-            buildInputs = [
+            propagatedBuildInputs = [
               pkgs.glfw
               pkgs.libGL
               pkgs.glm
