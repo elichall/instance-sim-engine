@@ -87,7 +87,7 @@ cmake --build build -j$(nproc)
 
 ## Using the Engine in Other Projects
 
-The engine can be consumed as a pre-built static library or by compiling the source directly.
+The engine can be consumed as a pre-built static library or by compiling the source directly. See an example of this in use: [Robotic Manipulator](https://github.com/elichall/pinn-project).
 
 ### As a Nix Flake Input
 
